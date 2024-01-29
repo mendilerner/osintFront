@@ -1,6 +1,6 @@
 import axios from "axios";
 import { BASE_URL } from "./usersServices";
-import { OrderInterface } from "../interfaces/ordersInterface";
+import { OrderInterface } from "../interfaces/newsInterface";
 import { handleUnAxiosError } from "./usersServices";
 
 export async function fetchOrders(): Promise<OrderInterface[] | void> {

@@ -1,63 +1,92 @@
-import { Box, Button, Typography } from "@mui/material";
 import { Point } from "ol/geom";
-
+import { useQuery } from "@apollo/client";
 import{fromLonLat} from "ol/proj";
-import locationIcon from './../../../../../../location-sign.svg';
-
-import { RFeature, RLayerTile, RLayerVector, RMap, ROSM, ROverlay, RStyle } from "rlayers";
+import { RFeature, RLayerTile, RLayerVector, RMap, RPopup, RStyle } from "rlayers";
 import { RCircle, RFill, RStroke } from "rlayers/style";
-import React, { useEffect, useState } from "react";
-// import { RStyle, RIcon, RFill, RStroke } from "rlayers/style";
-// import { Polygon, Point } from "ol/geom";
+import React, { useEffect } from "react";
+import { getAllnews, newOrUpdatedNews } from "../../../services/graphqlQueries";
+import { Newsinterface } from "../../../interfaces/newsInterface";
+import NewsBanner from "./NewsBanner";
+import { mergeObjects } from "../../../utils/utils";
+import { Overlay } from "ol";
+import Feature  from './Feature'
 const center = fromLonLat([2.364, 48.82]);
-const a = ['#0000FF', '#21Fff0', '#22B534' ]
-const date = new Date
-// const arr = [[-4.295, 48.8737],[14.295, 48.8737],[24.295, 48.8737]]
+
 const DashBoard = () => {
-  useEffect(():void => { console.log('re-rendered!'); });
-  const [rating, setRatign] = useState(0)
-  const [arr , setArr] = useState([{coordinates: [-4.295, 48.8737], color: "#7D0A0A", rating: 3}, {coordinates: [14.295, 48.8737], color: "#7D0A0A", rating: 2},  {coordinates:[24.295, 48.8737] , color: "#7D0A0A", rating: 5}])
+  
+  const {loading, error , data, subscribeToMore} = useQuery(getAllnews)
+  console.log(data);
+  const subscribeToNewOrUpdatednews = () => {
+    subscribeToMore({
+      document: newOrUpdatedNews,
+      updateQuery: (prev, {subscriptionData}) => {
+        const newOrUpdatedNews = subscriptionData.data.newOrUpdatedNews
+        if (!newOrUpdatedNews) return prev
+        const updatedArrayNews = mergeObjects(prev.allNews, newOrUpdatedNews)
+        return Object.assign({}, prev, {
+          allNews: updatedArrayNews
+        }) 
+      }
+    })
+  }
+  
+  useEffect(():void => {
+    subscribeToNewOrUpdatednews() 
+    console.log('re-rendered!')});
   return (
     <React.Fragment>
     <RMap  width={'100%'} height={'80vh'} initial={{center: center, zoom: 2}}>
    < RLayerTile url="http://mt0.google.com/vt/lyrs=p&hl=en&x={x}&y={y}&z={z}"/>
-   <RLayerVector zIndex={10}>
+   <RLayerVector zIndex={10} >
    
      
-     {arr.map((item) => <React.Fragment key={Date.now() * Math.random()}>
-      
-        <RFeature  
-            geometry={new Point(fromLonLat(item.coordinates))}
-            onClick={(e) => {
-              e.stopPropagation()
-              setRatign(item.rating)}
-                // e.map.getView().fit(e.target.getGeometry().getExtent(), {
-                //     duration: 2000,
-                //     maxZoom: 6
-                // })
-                
-            }
-        >
-          <RStyle.RStyle>
-            <RStyle.RCircle radius={item.rating * 5}>
-              <RStroke color={item.color} width={2}/>
-             <RFill color={'#7D0A0A20'}/>
-            </RStyle.RCircle>
-        </RStyle.RStyle>
-
-        {rating === item.rating && <ROverlay className="example-overlay">
-          <Typography sx={{border: '0.1px solid red', zIndex: 100 , background: 'white'}}>
-            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quod ad dolore suscipit pariatur id fugit corporis repellat minima consectetur commodi iusto praesentium at, inventore deleniti autem perspiciatis. Quae, ipsam vero.
-          </Typography>
-          </ROverlay>}
-        </RFeature>
-     </React.Fragment>)}
+     {data && data.allNews.map((item: Newsinterface) => <Feature item={item} key={Date.now() * Math.random()}/>)}
         
     </RLayerVector>
 </RMap>
-<Button onClick={() => setArr((prev) =>  [[-6.295, 28.8737],[34.295, 48.8737],[14.295, 48.8737]])}> hiclick</Button>
 </React.Fragment>
   );
 };
 
 export default DashBoard;
+
+
+
+// current === item._id && <ROverlay className="example-overlay">
+// {/* <Paper elevation={3}>
+// <Typography sx={{border: '0.1px solid red', zIndex: 100 , background: 'white',height: '12rem', width: "12rem"}}>
+// {item.snippet}
+// </Typography>
+// <Link to={item.link}>
+//  link to report
+// </Link>
+// </Paper> */}
+// <NewsBanner news={item}/>
+// </ROverlay>
+
+// onClick={(e) => {
+//   e.stopPropagation()
+//   setCurrent(item._id)}
+//     // e.map.getView().fit(e.target.getGeometry().getExtent(), {
+//     //     duration: 2000,
+//     //     maxZoom: 6
+//     // })
+    
+// }
+
+{/* <React.Fragment key={Date.now() * Math.random()}>
+      
+      <RFeature 
+          geometry={new Point(fromLonLat([item.coordinates[1] ,item.coordinates[0]]))}
+      >
+        <RStyle.RStyle>
+          <RCircle radius={(item.rating === 1) ? 10 : (item.rating >= 2 && item.rating <= 3) ? 14 : (item.rating >= 5) ? 18 : 6} >
+            <RStroke color={'#0A0A20'} width={2}/>
+           <RFill color={(item.rating === 1) ? '#ff5757' : (item.rating >= 2 && item.rating <= 3) ? '#ff0e0e' : (item.rating >= 5) ? 	'#6a0000' : '#99cc33'}/>
+          </RCircle>
+      </RStyle.RStyle>
+      <RPopup trigger={"click"} >
+      <NewsBanner news={item}/>
+          </RPopup>
+      </RFeature>
+   </React.Fragment> */}

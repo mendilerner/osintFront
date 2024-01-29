@@ -12,11 +12,13 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@apollo/client": "^3.8.10",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.14.16",
     "@mui/material": "^5.14.17",
     "axios": "^1.6.1",
+    "graphql-ws": "^5.14.3",
     "joi": "^17.9.2",
     "jwt-decode": "^4.0.0",
     "ol": "^8.2.0",
